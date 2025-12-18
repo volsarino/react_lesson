@@ -28,7 +28,7 @@ function Home() {
       alignItems="center"
     >
       <h1>gif畑</h1>
-      <img src="/images/idiot.gif" alt="sample gif" className="title-gif" />
+      <img src="/images/idiot.gif/" alt="sample gif" className="title-gif" />
 
       {/* ▼ ボタンを横並びにする Stack */}
       <Stack direction="row" spacing={2}>
@@ -82,13 +82,28 @@ function NextPage1() {
   );
 }
 function NextPage2() {
+  const [images, setImages] = useState([]);
+
+  useEffect(() => {
+    fetch("/.netlify/functions/listImages")
+      .then(res => res.json())
+      .then(setImages);
+  }, []);
+
   return (
     <div>
-      <h1>次のページ</h1>
-      <p>ここは2つ目の遷移先です。</p>
+      <h1>ギャラリー</h1>
+      <div className="gallery">
+        {images.map(id => (
+          <div key={id} className="item">
+            <img src={`/.netlify/functions/getImage?id=${id}`} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
+
 function NextPage3() {
   const [uploaded, setUploaded] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -114,15 +129,29 @@ function NextPage3() {
 
 
   // 画像アップロード
-  const handleUpload = (files) => {
+  const handleUpload = async (files) => {
   const fileArray = Array.from(files);
-  const readers = fileArray.map(file => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.readAsDataURL(file);
-    });
-  });
+
+  for (const file of fileArray) {
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      const id = Date.now().toString() + Math.random();
+
+      await fetch("/.netlify/functions/uploadImage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          data: reader.result, // base64
+        }),
+      });
+    };
+
+    reader.readAsDataURL(file);
+    }
+  };
+
 
   Promise.all(readers).then(results => {
     const newImages = results.map(src => ({

@@ -1,0 +1,79 @@
+body {
+  background:
+    linear-gradient(
+      rgba(240, 230, 200, 0.4),
+      rgba(240, 230, 200, 0.4)
+    ),
+    url("./images/old_paper.avif");
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+}
+
+h1 {
+  font-size: 60px;
+  text-align: center;
+}
+
+p,
+li {
+  font-size: 16px;
+  line-height: 2;
+  letter-spacing: 1px;
+}
+
+img {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4枚ごとに折り返し */
+  gap: 12px;
+  padding: 20px;
+}
+
+.item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background-color: #00000022; /* ←赤ではなく薄い透明グレーに変更（好みでOK） */
+  border: 3px solid transparent; /* ← 初期は枠なし */
+  cursor: pointer;
+  transition: border 0.2s;
+}
+
+.item.selected {
+  border-color: red; /* ← 選択時のみ赤枠 */
+}
+
+.item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* ← 枠にきれいに収める */
+  display: block;
+}
+
+p {
+  font-family: "Zen Old Mincho", serif;
+  font-weight: 400;
+  font-style: normal;
+  margin-left: 18%;
+}
+
+h1{
+  font-family: "DotGothic16", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+h2{     
+  margin-left: 18%;
+  font-family: "DotGothic16", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}

@@ -1,16 +1,18 @@
 import { getStore } from "@netlify/blobs";
 
 export default async (req) => {
-  const store = getStore("gif-images");
   const id = new URL(req.url).searchParams.get("id");
 
+  const store = getStore("images");
   const data = await store.get(id);
 
-  if (!data) {
-    return new Response("Not found", { status: 404 });
-  }
+  // dataURL → base64 部分だけ取り出す
+  const base64 = data.split(",")[1];
 
-  return new Response(data, {
-    headers: { "Content-Type": "image/gif" },
+  // base64 → バイナリ変換
+  const buffer = Buffer.from(base64, "base64");
+
+  return new Response(buffer, {
+    headers: { "Content-Type": "image/gif" }
   });
 };

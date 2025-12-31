@@ -28,7 +28,7 @@ function Home() {
       alignItems="center"
     >
       <h1>gif畑</h1>
-      <img src="/images/idiot.gif/" alt="sample gif" className="title-gif" />
+      <img src="/images/idiot.gif" alt="sample gif" className="title-gif" />
 
       {/* ▼ ボタンを横並びにする Stack */}
       <Stack direction="row" spacing={2}>
@@ -57,7 +57,8 @@ function Home() {
         </Button>
       </Stack>
 
-      <img src="/images/magic meme.gif" alt="sample gif" className="title-gif" />
+      <img src="/images/magic meme.gif" alt="samp
+      le gif" className="title-gif" />
     </Stack>
   );
 }
@@ -93,6 +94,7 @@ function NextPage2() {
   return (
     <div>
       <h1>ギャラリー</h1>
+
       <div className="gallery">
         {images.map(id => (
           <div key={id} className="item">
@@ -105,74 +107,58 @@ function NextPage2() {
 }
 
 function NextPage3() {
-  const [uploaded, setUploaded] = useState([]);
+  const [myIds, setMyIds] = useState([]);
   const [selected, setSelected] = useState(null);
 
-  // 初回ロード
+  // ===== 初回ロード（IDのみ読み込む）=====
   useEffect(() => {
-  let stored = [];
-  try {
-    stored = JSON.parse(localStorage.getItem("uploadedImages")) || [];
-    if (!Array.isArray(stored)) stored = [];
-  } catch {
-    stored = [];
-  }
+    try {
+      const stored = JSON.parse(localStorage.getItem("myBlobImageIds")) || [];
+      if (Array.isArray(stored)) setMyIds(stored);
+    } catch {
+      setMyIds([]);
+    }
+  }, []);
 
-  const normalized = stored.map(item =>
-    typeof item === "string"
-      ? { id: Date.now().toString() + Math.random(), src: item }
-      : item
-  );
-
-  setUploaded(normalized);
-}, []);
-
-
-  // 画像アップロード
+  // ===== 画像アップロード（Blobs に保存 & ID を記録）=====
   const handleUpload = async (files) => {
-  const fileArray = Array.from(files);
+    const fileArray = Array.from(files);
 
-  for (const file of fileArray) {
-    const reader = new FileReader();
+    for (const file of fileArray) {
+      const reader = new FileReader();
 
-    reader.onload = async () => {
-      const id = Date.now().toString() + Math.random();
+      reader.onload = async () => {
+        const id = Date.now().toString() + Math.random();
 
-      await fetch("/.netlify/functions/uploadImage", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id,
-          data: reader.result, // base64
-        }),
-      });
-    };
+        // Netlify Blobs に保存（現状維持）
+        await fetch("/.netlify/functions/uploadImage", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id,
+            data: reader.result
+          })
+        });
 
-    reader.readAsDataURL(file);
+        // localStorage には ID のみ保存
+        setMyIds(prev => {
+          const updated = [...prev, id];
+          localStorage.setItem("myBlobImageIds", JSON.stringify(updated));
+          return updated;
+        });
+      };
+
+      reader.readAsDataURL(file);
     }
   };
 
-
-  Promise.all(readers).then(results => {
-    const newImages = results.map(src => ({
-      id: Date.now().toString() + Math.random(),
-      src,
-    }));
-
-    setUploaded(prev => {
-      const updated = [...prev, ...newImages];
-      localStorage.setItem("uploadedImages", JSON.stringify(updated));
-      return updated;
-    });
-  });
-};
-
-  // 削除
+  // ===== 削除（localStorage & 画面からだけ消す）=====
   const handleDelete = () => {
     if (selected === null) return;
-    const updated = uploaded.filter((_, i) => i !== selected);
-    setUploaded(updated);
-    localStorage.setItem("uploadedImages", JSON.stringify(updated));
+
+    const updated = myIds.filter((_, i) => i !== selected);
+    setMyIds(updated);
+    localStorage.setItem("myBlobImageIds", JSON.stringify(updated));
     setSelected(null);
   };
 
@@ -208,19 +194,26 @@ function NextPage3() {
       </Button>
 
       <div className="gallery">
-        {uploaded.map((item, index) => (
+        {myIds.map((id, index) => (
           <div
-            key={item.id}
+            key={id}
             className={`item ${selected === index ? "selected" : ""}`}
             onClick={() => setSelected(index)}
           >
-            <img src={item.src} alt={`my-${index}`} />
+            {/* ← ここで Blobs の画像を表示 */}
+            <img
+              src={`/.netlify/functions/getImage?id=${id}`}
+              alt={`blob-${id}`}
+            />
           </div>
         ))}
       </div>
     </div>
   );
 }
+
+
+
 
 
 

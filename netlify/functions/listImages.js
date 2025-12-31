@@ -4,9 +4,12 @@ export default async () => {
   const store = getStore("images");
 
   const keys = [];
-  for await (const key of store.list()) {
-    keys.push(key);
+
+  for await (const entry of store.list()) {
+    keys.push(entry.key);
   }
 
-  return new Response(JSON.stringify(keys));
+  return new Response(JSON.stringify(keys), {
+    headers: { "Content-Type": "application/json" }
+  });
 };

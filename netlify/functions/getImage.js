@@ -5,10 +5,20 @@ export default async (req) => {
 
   const store = getStore("images");
 
+  // ★ Blobs に保存してある Base64 を取得
   const base64 = await store.get(id);
 
-  return new Response(
-    Buffer.from(base64, "base64"),
-    { headers: { "Content-Type": "image/gif" } }
-  );
+  if (!base64) {
+    return new Response("Not Found", { status: 404 });
+  }
+
+  // ★ Base64 → バイナリ変換
+  const buffer = Buffer.from(base64, "base64");
+
+  return new Response(buffer, {
+    headers: {
+      "Content-Type": "image/gif",
+      "Cache-Control": "public, max-age=31536000"
+    }
+  });
 };

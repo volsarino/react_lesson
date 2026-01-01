@@ -4,61 +4,42 @@ import Stack from "@mui/material/Stack";
 import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import CloudUploadIcon from "@mui/icons-material/CloudUploadOutlined";
 import { useState, useEffect } from "react";
+
 const theme = createTheme();
-const VisuallyHiddenInput = styled('input')({
-  clip: 'rect(0 0 0 0)',
-  clipPath: 'inset(50%)',
+
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
   height: 1,
-  overflow: 'hidden',
-  position: 'absolute',
+  overflow: "hidden",
+  position: "absolute",
   bottom: 0,
   left: 0,
-  whiteSpace: 'nowrap',
-  width: 1,
+  whiteSpace: "nowrap",
+  width: 1
 });
 
 function Home() {
-  const navigate = useNavigate(); // ページ遷移用
+  const navigate = useNavigate();
 
   return (
-    <Stack
-      direction="column"
-      spacing={3}
-      justifyContent="center"
-      alignItems="center"
-    >
-      <h1>gif畑</h1>
+    <Stack direction="column" spacing={3} justifyContent="center" alignItems="center">
+      <h1>マイキャンバス</h1>
+
       <img src="/images/idiot.gif" alt="sample gif" className="title-gif" />
 
-      {/* ▼ ボタンを横並びにする Stack */}
       <Stack direction="row" spacing={2}>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => navigate("/next1")}
-        >
+        <Button variant="contained" size="large" onClick={() => navigate("/next1")}>
           gif画像の作り方
         </Button>
 
-        <Button
-          variant="contained"
-          color="secondary"
-          size="large"
-          onClick={() => navigate("/next2")}
-        >
-          ギャラリー
-        </Button>
-        <Button
-          variant="contained"
-          size="large"
-          onClick={() => navigate("/next3")}
-        >
-          マイgif
+        {/* Page2 削除済み */}
+        <Button variant="contained" size="large" onClick={() => navigate("/next3")}>
+          画集
         </Button>
       </Stack>
 
-      <img src="/images/magic meme.gif" alt="samp
-      le gif" className="title-gif" />
+      <img src="/images/magic meme.gif" alt="sample gif" className="title-gif" />
     </Stack>
   );
 }
@@ -66,15 +47,22 @@ function Home() {
 function NextPage1() {
   return (
     <div>
-      <h1>gif画像の作り方</h1>
-      <h2>gif画像とは</h2>
-      <p>gif画像は、数枚の画像をパラパラ漫画のように連続して表示することで動きを表現している画像フォーマットである。</p>
+      <h1>ガイドライン</h1>
+      <h2>1.本サイトについて</h2>
+      <p>このサイトは、写真や絵、gif画像を作ったり、お気に入りの画像をサイト上に自由にアップロードし、思い出や表現の場とするものである。</p>
+      <h2>2.サイトの使い方</h2>
+      <p></p>
+      <h2>3.gif画像とは</h2>　
+      <p>
+        gif画像は、数枚の画像をパラパラ漫画のように連続して表示することで
+        動きを表現している画像フォーマットである。
+      </p>
       <h2>工程</h2>
-      <p>連続する画像を数枚撮る、もしくは、作成。<br />
-          ↓<br />
-          専用のツールやソフト、サイトを使ってアニメーションを作成。<br />
-          ↓<br />
-          完成！</p>
+      <p>連続する画像を数枚撮る、もしくは、作成。<br/>
+      ↓<br/>
+      専用のツールやソフト、サイトを使ってアニメーションを作成。<br/>
+      ↓<br/>
+      完成!</p>
       <h2>無料で作成できるサイト</h2>
       <p>バナー工房:<a href="https://www.bannerkoubou.com/anime/" target="_blank" rel="noopener noreferrer">https://www.bannerkoubou.com/anime/</a></p>
       <p>LoveGIF:<a href="https://www.lovegif.top/ja/gifmaker" target="_blank" rel="nooperner noreferrer">https://www.lovegif.top/ja/gifmaker</a></p>
@@ -82,139 +70,147 @@ function NextPage1() {
     </div>
   );
 }
-function NextPage2() {
-  const [images, setImages] = useState([]);
 
-  useEffect(() => {
-    fetch("/.netlify/functions/listImages")
-      .then(res => res.json())
-      .then(setImages);
-  }, []);
-
-  return (
-    <div>
-      <h1>ギャラリー</h1>
-
-      <div className="gallery">
-        {images.map(id => (
-          <div key={id} className="item">
-            <img src={`/.netlify/functions/getImage?id=${id}`} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
+/* ==========================================
+   Page3（ローカル保存・表示のみ）
+   ========================================== */
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 function NextPage3() {
-  const [myIds, setMyIds] = useState([]);
+  const [myImages, setMyImages] = useState([]);
   const [selected, setSelected] = useState(null);
 
-  // ===== 初回ロード（IDのみ読み込む）=====
+    console.log("CLOUD_NAME =", CLOUD_NAME);
+  console.log("UPLOAD_PRESET =", UPLOAD_PRESET);
+
+  if (!CLOUD_NAME || !UPLOAD_PRESET) {
+    alert("Cloudinary の設定が読み込まれていません。\n.env ファイルを確認してください。");
+  }
+
+  // 初回ロード（Cloudinary 情報を読み込み）
   useEffect(() => {
+    const stored = localStorage.getItem("myCloudImages");
+    if (!stored) return;
+
     try {
-      const stored = JSON.parse(localStorage.getItem("myBlobImageIds")) || [];
-      if (Array.isArray(stored)) setMyIds(stored);
-    } catch {
-      setMyIds([]);
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) setMyImages(parsed);
+    } catch (e) {
+      console.error("読み込み失敗", e);
     }
   }, []);
 
-  // ===== 画像アップロード（Blobs に保存 & ID を記録）=====
+  // Cloudinary へアップロード
   const handleUpload = async (files) => {
     const fileArray = Array.from(files);
 
     for (const file of fileArray) {
-      const reader = new FileReader();
+      const title = prompt("この画像のタイトルを入力してください");
 
-      reader.onload = async () => {
-        const id = Date.now().toString() + Math.random();
+      const form = new FormData();
+      form.append("file", file);
+      form.append("upload_preset", UPLOAD_PRESET);
 
-        // Netlify Blobs に保存（現状維持）
-        await fetch("/.netlify/functions/uploadImage", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            id,
-            data: reader.result
-          })
-        });
+      // 🔹 Cloudinary の context に title を保存
+      if (title) {
+        form.append("context", `title=${title}`);
+      }
 
-        // localStorage には ID のみ保存
-        setMyIds(prev => {
-          const updated = [...prev, id];
-          localStorage.setItem("myBlobImageIds", JSON.stringify(updated));
+      try {
+        const res = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+          { method: "POST", body: form }
+        );
+
+        const data = await res.json();
+
+        // Cloudinary から返る値
+        //  secure_url … 最適化CDN URL
+        //  public_id  … 削除 / 更新で使用
+        const newItem = {
+          url: data.secure_url,
+          publicId: data.public_id,
+          title: title || "",
+        };
+
+        setMyImages((prev) => {
+          const updated = [...prev, newItem];
+          localStorage.setItem("myCloudImages", JSON.stringify(updated));
           return updated;
         });
-      };
-
-      reader.readAsDataURL(file);
+      } catch (err) {
+        console.error("アップロード失敗", err);
+        alert("アップロードに失敗しました");
+      }
     }
   };
 
-  // ===== 削除（localStorage & 画面からだけ消す）=====
+  // （今回は Cloudinary から削除せず、ローカル一覧からのみ削除）
   const handleDelete = () => {
     if (selected === null) return;
-
-    const updated = myIds.filter((_, i) => i !== selected);
-    setMyIds(updated);
-    localStorage.setItem("myBlobImageIds", JSON.stringify(updated));
+    const updated = myImages.filter((_, i) => i !== selected);
+    setMyImages(updated);
+    localStorage.setItem("myCloudImages", JSON.stringify(updated));
     setSelected(null);
   };
 
   return (
-    <div>
-      <h1>マイgif</h1>
+    <div style={{ padding: "20px" }}>
+      <h1>画集（Cloudinary 保存）</h1>
 
-      <Button
-        component="label"
-        variant="contained"
-        startIcon={<CloudUploadIcon />}
-        style={{ marginBottom: 20 }}
-      >
-        Upload files
-        <VisuallyHiddenInput
-          type="file"
-          multiple
-          onChange={(e) => {
-            handleUpload(e.target.files);
-            e.target.value = "";
-          }}
-        />
-      </Button>
+      <Stack direction="row" spacing={2} justifyContent="center" style={{ marginBottom: 20 }}>
+        <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
+          Upload files
+          <VisuallyHiddenInput
+            type="file"
+            multiple
+            accept="image/gif,image/jpeg,image/png"
+            onChange={(e) => {
+              handleUpload(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </Button>
 
-      <Button
-        variant="contained"
-        color="error"
-        disabled={selected === null}
-        onClick={handleDelete}
-        style={{ marginLeft: 20 }}
-      >
-        選択した画像を削除
-      </Button>
+        <Button
+          variant="contained"
+          color="error"
+          disabled={selected === null}
+          onClick={handleDelete}
+        >
+          選択した画像を削除（ローカル一覧のみ）
+        </Button>
+      </Stack>
 
       <div className="gallery">
-        {myIds.map((id, index) => (
+        {myImages.length === 0 && (
+          <p style={{ textAlign: "center", width: "100%" }}>画像がありません</p>
+        )}
+
+        {myImages.map((img, index) => (
           <div
-            key={id}
+            key={img.publicId}
             className={`item ${selected === index ? "selected" : ""}`}
             onClick={() => setSelected(index)}
           >
-            {/* ← ここで Blobs の画像を表示 */}
             <img
-              src={`/.netlify/functions/getImage?id=${id}`}
-              alt={`blob-${id}`}
+              src={img.url}
+              alt={img.title || `image-${index}`}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
             />
           </div>
         ))}
       </div>
+
+      {/* 🔹 選択画像のタイトル表示 */}
+      {selected !== null && (
+        <p style={{ textAlign: "center", marginTop: 10 }}>
+          タイトル：{myImages[selected].title || "(未設定)"}
+        </p>
+      )}
     </div>
   );
 }
-
-
-
-
 
 
 export default function App() {
@@ -224,7 +220,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/next1" element={<NextPage1 />} />
-          <Route path="/next2" element={<NextPage2 />} />
+
+          {/* Page2 削除 */}
+          {/* <Route path="/next2" element={<NextPage2 />} /> */}
+
           <Route path="/next3" element={<NextPage3 />} />
         </Routes>
       </BrowserRouter>

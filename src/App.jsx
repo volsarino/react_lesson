@@ -30,7 +30,7 @@ function Home() {
 
       <Stack direction="row" spacing={2}>
         <Button variant="contained" size="large" onClick={() => navigate("/next1")}>
-          gif画像の作り方
+          説明書
         </Button>
 
         {/* Page2 削除済み */}
@@ -47,11 +47,14 @@ function Home() {
 function NextPage1() {
   return (
     <div>
-      <h1>ガイドライン</h1>
+      <h1>説明書</h1>
       <h2>1.本サイトについて</h2>
       <p>このサイトは、写真や絵、gif画像を作ったり、お気に入りの画像をサイト上に自由にアップロードし、思い出や表現の場とするものである。</p>
       <h2>2.サイトの使い方</h2>
-      <p></p>
+      <p>・画集ボタンをクリックし、画集ページを開く。<br/>
+      ・「UPLOAD FILES」のボタンをクリックし、画像を選択し、タイトルを入力する。<br/>
+      ・画像が表示され、画像をクリックするとタイトルが表示される。
+      </p>
       <h2>3.gif画像とは</h2>　
       <p>
         gif画像は、数枚の画像をパラパラ漫画のように連続して表示することで
@@ -156,7 +159,7 @@ function NextPage3() {
 
   return (
     <div style={{ padding: "20px" }}>
-      <h1>画集（Cloudinary 保存）</h1>
+      <h1>画集</h1>
 
       <Stack direction="row" spacing={2} justifyContent="center" style={{ marginBottom: 20 }}>
         <Button component="label" variant="contained" startIcon={<CloudUploadIcon />}>
@@ -178,7 +181,7 @@ function NextPage3() {
           disabled={selected === null}
           onClick={handleDelete}
         >
-          選択した画像を削除（ローカル一覧のみ）
+          選択した画像を削除
         </Button>
       </Stack>
 

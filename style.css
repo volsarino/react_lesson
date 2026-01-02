@@ -4,13 +4,15 @@ body {
       rgba(240, 230, 200, 0.4),
       rgba(240, 230, 200, 0.4)
     ),
-    url("./images/old_paper.avif");
+    url("/images/old_paper.avif");
 
+  background-attachment: fixed;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-blend-mode: multiply;
 }
+
 
 h1 {
   font-size: 60px;

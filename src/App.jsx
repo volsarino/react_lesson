@@ -25,7 +25,6 @@ function Home() {
   return (
     <Stack direction="column" spacing={3} justifyContent="center" alignItems="center">
       <h1>マイキャンバス</h1>
-      <h2>学籍番号:5424020氏名:高荷悠壱</h2>
       <img src="/images/idiot.gif" alt="sample gif" className="title-gif" />
 
       <Stack direction="row" spacing={2}>
